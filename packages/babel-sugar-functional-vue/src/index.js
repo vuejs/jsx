@@ -1,23 +1,6 @@
 import syntaxJsx from '@babel/plugin-syntax-jsx'
 
 /**
- * Check if expression is in method
- * @param t
- * @param path
- * @param parentLimitPath
- * @returns boolean
- */
-const isInMethod = (t, path, parentLimitPath) => {
-  if (!path || path === parentLimitPath) {
-    return false
-  }
-  if (t.isObjectMethod(path)) {
-    return true
-  }
-  return isInMethod(t, path.parentPath, parentLimitPath)
-}
-
-/**
  * Check path has JSX
  * @param t
  * @param path
@@ -25,12 +8,23 @@ const isInMethod = (t, path, parentLimitPath) => {
  */
 const hasJSX = (t, path) => {
   let hasJSX = false
+  let parentScope
 
   path.traverse({
     JSXElement(elPath) {
-      if (!isInMethod(t, elPath, path)) {
+      if (parentScope === elPath.scope) {
         hasJSX = true
       }
+    },
+
+    ArrowFunctionExpression(blockPath) {
+      const isParent = blockPath.parentPath === path
+
+      if (!isParent) {
+        return
+      }
+
+      parentScope = blockPath.scope
     },
   })
 

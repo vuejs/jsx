@@ -94,6 +94,23 @@ const tests = [
 });`,
   },
   {
+    name: 'Wrapper of function does not compile',
+    from: `const Wrapped = () => wrap(() => <span />)`,
+    to: `const Wrapped = () => wrap(() => <span />);`,
+  },
+  {
+    name: 'If JSX in function arguments does not compile',
+    from: `const Wrapped = (jsx = () => <span />) => jsx`,
+    to: `const Wrapped = (jsx = () => <span />) => jsx;`,
+  },
+  {
+    name: 'If JSX in nested function does not compile',
+    from: `const Wrapped = () => function () { return <span /> }`,
+    to: `const Wrapped = () => function () {
+  return <span />;
+};`,
+  },
+  {
     name: 'Default export',
     from: `export default ({ props, listeners }) => <div onClick={listeners.click}>{props.msg}</div>`,
     to: `export default {
