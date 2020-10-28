@@ -165,8 +165,23 @@ const parseAttributeJSXAttribute = (t, path, attributes, tagName, elementType) =
     ;[name, argument] = name.split(':')
 
   prefix = prefixes.find(el => name.startsWith(el)) || 'attrs'
+
+  // For custom components(which tag name is not html tag), event binding need to use `nativeOn` but not `on`
+  // `on` prefix should transform to `attrs`
+  if (!htmlTags.includes(tagName) && prefix === 'on') {
+    prefix = 'attrs'
+  }
+
   name = name.replace(new RegExp(`^${prefix}\-?`), '')
-  name = name[0].toLowerCase() + name.substr(1)
+
+  // in jsx, event binding use Camel case, such as `onClick`, `onMouseDown`;
+  // in HTML Specification, event binding is all lower case, such as `onclick`, `onmousedown`
+  // so for `on` and `nativeOn` attribute in jsx, transform `name` to all lower case
+  if (prefix === 'on' || prefix === 'nativeOn') {
+    name = name.toLowerCase()
+  } else {
+    name = name[0].toLowerCase() + name.substr(1)
+  }
 
   const valuePath = path.get('value')
   let value
