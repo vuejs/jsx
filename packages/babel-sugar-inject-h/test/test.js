@@ -3,6 +3,8 @@ import { transform } from '@babel/core'
 import plugin from '../dist/plugin.testing'
 import jsxPlugin from '../../babel-plugin-transform-vue-jsx/dist/plugin.testing'
 
+import functionalTests from './rules/funcional'
+
 const transpile = src =>
   new Promise((resolve, reject) => {
     transform(
@@ -106,23 +108,24 @@ const tests = [
 };`,
   },
   {
-    name: 'Arguments-based injection into render function',
+    name: 'Arguments-based injection into render method',
     from: `const obj = {
       render () {
         return <div>test</div>
       }
     }`,
     to: `const obj = {
-  render() {
-    const h = arguments[0];
+  render(h) {
     return <div>test</div>;
   }
 
 };`,
   },
+
+  ...functionalTests
 ]
 
-tests.forEach(({ name, from, to }) => test(name, async t => t.is(await transpile(from), to)))
+tests.forEach(({ name, from, to }) => test(name, async t => t.is((await transpile(from)).trim(), to.trim())))
 
 test('Should work with JSX plugin enabled', async t => {
   const from = `const obj = {
@@ -131,8 +134,7 @@ test('Should work with JSX plugin enabled', async t => {
     }
   }`
   const to = `const obj = {
-  render() {
-    const h = arguments[0];
+  render(h) {
     return h("div", ["test"]);
   }
 
